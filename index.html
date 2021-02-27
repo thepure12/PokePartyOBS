@@ -9,19 +9,15 @@
 
 <body>
     <div id="app" class="container">
-        <div class="d-flex justify-content-center mt-4">
-            <div v-for="i in 6" class="px-1">
-                <img width=100px
-                    :src="`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pkmn[i - 1]}.png`"
-                    class="border rounded p-2" v-if="pkmn[i - 1]">
-                <img v-else="" width=100px src="https://upload.wikimedia.org/wikipedia/commons/4/48/BLANK_ICON.png"
-                    class="border rounded p-2">
+        <div class="justify-content-center mt-4" style="display: inline-flex;">
+            <div v-for="i in 6" class="px-1" :style="`background-image: url('${cardArts[i - 1]}'); width:200px;
+                height:120px; background-position: -20px -40px`">
             </div>
         </div>
         <div class="d-flex justify-content-center mt-5">
-            <b-form-group v-for="i in 6" :id="`pkmn-group-${i}`" :label="`Pokemon ${i}`" :label-for="`pkmn-${i}`"
+            <b-form-group v-for="i in 6" :id="`pokemon-group-${i}`" :label="`Pokemon ${i}`" :label-for="`pokemon-${i}`"
                 class="px-1">
-                <b-form-input :id="`pkmn-${i}`" v-model="pkmn[i-1]" type="number" trim number style="width:100px">
+                <b-form-input :id="`pokemon-${i}`" v-model="pokemon[i-1]" type="number" trim number style="width:100px">
                 </b-form-input>
             </b-form-group>
         </div>
@@ -30,7 +26,34 @@
         var app = new Vue({
             el: '#app',
             data: {
-                pkmn: [0, 0, 0, 0, 0, 0]
+                pokemonOld: [0, 0, 0, 0, 0, 0],
+                pokemon: [0, 0, 0, 0, 0, 0],
+                cardArts: [null, null, null, null, null, null]
+            },
+            watch: {
+                pokemon(newPokemon) {
+                    for (let i in newPokemon) {
+                        if (this.pokemonOld[i] != newPokemon[i]) {
+                            this.pokemonOld[i] = newPokemon[i]
+                            this.getCardArt(newPokemon[i], i)
+                        }
+                    }
+                    this.$nextTick(() => { })
+                }
+            },
+            methods: {
+                async getCardArt(dexNumber, partyNumber) {
+                    url = `https://api.pokemontcg.io/v2/cards?q=nationalPokedexNumbers:${dexNumber}`
+                    await fetch(url, { method: "GET" })
+                        .then(res => res.json())
+                        .then(data => {
+                            data = data.data
+                            randInt = Math.floor(Math.random() * data.length)
+                            arts = this.cardArts.slice()
+                            arts[partyNumber] = data[randInt].images.small
+                            this.cardArts = arts
+                        })
+                }
             }
         })
 
